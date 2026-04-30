@@ -15,6 +15,10 @@ The repository contains three pieces of code. Two Python scripts that use MediaP
 
 The thrid piece of code is a Supercollider Script that implement a Regression Neural Networks suing FluCoMa to control the latent space of RAVE that stands for Realtime Audio Variational autoEncoder. It is a deep learning model developed by IRCAM (Institut de Recherche et Coordination Acoustique/Musique) in Paris. In the code it is used [[https://github.com/victor-shepardson/rave-supercollider/tree/master][rave-supercollider]]. 
 
+The Supercollider Script provides of a User interface that allows to training, save and load datasets, save and load models, and play according to the inputs of MediaPipe that feed the neural network. 
+
+[[./gui.png]]
+
 * How to use
 
 ** Running the MediaPipe Python Scripts
