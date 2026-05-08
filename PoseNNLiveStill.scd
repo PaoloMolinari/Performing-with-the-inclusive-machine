@@ -656,14 +656,24 @@ s.waitForBoot{
 		fpx = val[76]; //FluidBufToKr.kr(parambuf, 75, 1);
 		fpy = val[77]; //FluidBufToKr.kr(parambuf, 76, 1);
 	
-		
+		/*
 		laa = K2A.ar(Lag.kr(lata, 0.2));
 		lab = K2A.ar(Lag.kr(latb, 0.2));
 		lac = K2A.ar(Lag.kr(latc, 0.2));
 		lad = K2A.ar(Lag.kr(latd, 0.2));
 		lae = K2A.ar(Lag.kr(late, 0.2));
 		laf = K2A.ar(Lag.kr(latf, 0.2));
+		*/
 
+		laa = K2A.ar(lata);
+		lab = K2A.ar(latb);
+		lac = K2A.ar(latc);
+		lad = K2A.ar(latd);
+		lae = K2A.ar(late);
+		laf = K2A.ar(latf);
+
+		laa.poll;
+		
 		ga = Changed.kr(Mix.kr(lata), 0.01);
 		gb = Changed.kr(Mix.kr(latb), 0.01);
 		gc = Changed.kr(Mix.kr(latc), 0.01);
@@ -719,7 +729,8 @@ s.waitForBoot{
 		*/
 
 		//laa.poll;
-	
+
+		
 		as = NN(\moda, \decode).ar(laa, 8192);
 		bs = NN(\modb, \decode).ar(lab, 8192);
 		cs = NN(\modc, \decode).ar(lac, 8192);
@@ -834,7 +845,7 @@ OSCdef(\paramsChanged,{
 	arg msg;
 	defer{
 		msg.postln;
-		mss.value_(msg[3..]);  // up to 65 nd then the rest to control each xy slider
+		//mss.value_(msg[3..]);  // up to 65 nd then the rest to control each xy slider
 	};
 },"/paramsChanged");
 
