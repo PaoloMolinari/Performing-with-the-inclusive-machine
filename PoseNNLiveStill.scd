@@ -672,7 +672,10 @@ s.waitForBoot{
 		lae = K2A.ar(late);
 		laf = K2A.ar(latf);
 
-		laa.poll;
+		lae.poll;
+
+		
+		//		laa.poll;
 		
 		ga = Changed.kr(Mix.kr(lata), 0.01);
 		gb = Changed.kr(Mix.kr(latb), 0.01);
