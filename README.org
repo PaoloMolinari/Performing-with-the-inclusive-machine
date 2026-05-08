@@ -37,6 +37,8 @@ This instructions are for Linux, and the scripts has been tested only in Fedora 
 
 If the intention is to run the scripts that recognize the poses from pictures, the script need to be run within the terminal in the session where the conda environment =mediapipe= is active.
 
+In order to run the scripts, you need to download the models from the [[https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker][Mediapipe page]].
+
 ** Running the Supercollider Script
 
 *** Installing Supercollider and the dependences

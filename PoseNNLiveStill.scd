@@ -1,33 +1,4 @@
-
-OSCdef.trace(true);
-OSCdef.trace(false);
-
 (
-s.options.numBuffers = 1024 * 16;
-s.options.memSize = 8192 * 64;
-s.options.numOutputBusChannels = 4;
-s.boot;
-s.meter;
-s.plotTree;
-
-thisProcess.openUDPPort(57120);
-
-)
-
-/*
-(
-NN.load(\moda, "/home/pemb/Music/Supercollider/nnRave/models/voice-multi-b2048-r48000-z11.ts", action: _.describe ); //11
-NN.load(\modb, "/home/pemb/Music/Supercollider/nnRave/models/guitar_iil_b2048_r48000_z16.ts"); //16
-NN.load(\modc, "/home/pemb/Music/Supercollider/nnRave/models/mrp_strengjavera_b2048_r44100_z16.ts", action: _.describe); //8
-NN.load(\modd, "/home/pemb/Music/Supercollider/nnRave/models/birds_dawnchorus_b2048_r48000_z8.ts", action: _.describe); //8
-NN.load(\mode, "/home/pemb/Music/Supercollider/nnRave/models/percussion.ts", action: _.describe); // 4
-NN.load(\modf, "/home/pemb/Music/Supercollider/nnRave/models/crozzoli_bigensemblesmusic_18d.ts", action: _.describe); //18
-)
-
-*/
-
-(
-
 s.options.numBuffers = 1024 * 16;
 s.options.memSize = 8192 * 64;
 s.options.numOutputBusChannels = 4;
@@ -78,8 +49,18 @@ s.waitForBoot{
 	// mpbuf, Buffer from MediaPipe
 	// parambuf, Buffer to synth and control 
 	var mpbuf = Buffer.alloc(s, numValues);
-	var paramsbuf = Buffer.alloc(s, 77);
+	var paramsbuf = Buffer.alloc(s, 78);
 
+	var synthpbuf = Buffer.alloc(s, 66);
+	var spaAPBus = Buffer.alloc(s, 2);
+	var spaBPBus = Buffer.alloc(s, 2);
+	var spaCPBus = Buffer.alloc(s, 2);
+	var spaDPBus = Buffer.alloc(s, 2);
+	var spaEPBus = Buffer.alloc(s, 2);
+	var spaFPBus = Buffer.alloc(s, 2);
+
+	var allBuf = Buffer.alloc(s, 78);
+	
 	//Buffer para Deltas
 	var deltabuf = Buffer.alloc(s, numValues);
 
@@ -151,6 +132,7 @@ s.waitForBoot{
 
 	OSCdef(\oscposes, {
 		arg msg, mmsg;
+
 		var smoothing = 0.9;	
 		// clean the OSC path
 		var incarray = msg[1..];
@@ -184,6 +166,9 @@ s.waitForBoot{
 		mpbuf.setn(0, adatasmooth);
 
 		// Take the absolute and mean of the delta changes
+
+		//activity is non 1 only when predicting
+
 		activity[0] = sdeltas.abs.mean;
 		//activity[0].postln;
 
@@ -222,6 +207,7 @@ s.waitForBoot{
 
 	win.onClose_({
 		s.freeAll;
+		"pkill -f bodyPose.py".unixCmd;  // kill it on toggle off
 	});
 
 	// Text field to display info synth parameter
@@ -253,14 +239,15 @@ s.waitForBoot{
 	mss = MultiSliderView(win, Rect(10, 30, 400, 300))
 	.elasticMode_(1)
 	.isFilled_(1)
+	.showIndex_(true)
 	.action_({
 		arg ms;
 		paramsbuf.setn(0, ms.value);
-		infosynth.string_("Slider: %  Value: %".format(
+			infosynth.string_("Slider: %  Value: %".format(
 			ms.index,
 			ms.value[ms.index].round(0.01)
-		));	
-	}).value_(0.0.dup(64));
+			));	
+	}).value_(0.0.dup(65)); //65
 
 	//Multislider MediaPipe from OSC/JSON
 
@@ -463,6 +450,7 @@ s.waitForBoot{
 	.action_{
 		arg but;
 		if(but.value == 1){predict = true}{predict == false};
+		
 		synth.set(\predicting, but.value);
 	};
 
@@ -490,7 +478,7 @@ s.waitForBoot{
 	.action_{
 		arg msg;
 		if (msg.value == 1) {
-			~pid = "bash -c 'conda run -n mediapipe python /home/pemb/python/mediapipe/bodyPose.py'".unixCmd;	
+			~pid = "bash -c 'conda run -n mediapipe python /home/pemb/Documents/Proyectos/Mime_interactive/Musical_Instrument/mpPoseLive.py'".unixCmd;	
         } {
             "pkill -f bodyPose.py".unixCmd;  // kill it on toggle off
         };
@@ -503,8 +491,8 @@ s.waitForBoot{
 	.y_(0.5)   // initial location of y
 	.thumbSize_(10)
 	.action_({ |sl|
-		paramsbuf.set(65, sl.x.linlin(0, 1, -1, 1));
-		paramsbuf.set(66, sl.y.linlin(0, 1, -1, 1));
+		paramsbuf.set(66, sl.x.linlin(0, 1, -1, 1));
+		paramsbuf.set(67, sl.y.linlin(0, 1, -1, 1));
 		//	[\sliderX, sl.x, \sliderY, sl.y].postln;
 	});
 
@@ -513,8 +501,8 @@ s.waitForBoot{
 	.y_(0.5)   // initial location of y
 	.thumbSize_(10)
 	.action_({ |sl|
-		paramsbuf.set(67, sl.x.linlin(0, 1, -1, 1));
-		paramsbuf.set(68, sl.y.linlin(0, 1, -1, 1));
+		paramsbuf.set(68, sl.x.linlin(0, 1, -1, 1));
+		paramsbuf.set(69, sl.y.linlin(0, 1, -1, 1));
 		//	[\sliderX, sl.x, \sliderY, sl.y].postln;
 	});
 
@@ -523,9 +511,8 @@ s.waitForBoot{
 	.y_(0.5)   // initial location of y
 	.thumbSize_(10)
 	.action_({ |sl|
-		paramsbuf.set(69, sl.x.linlin(0, 1, -1, 1));
-		paramsbuf.set(70, sl.y.linlin(0, 1, -1, 1));
-		//	[\sliderX, sl.x, \sliderY, sl.y].postln;
+		paramsbuf.set(70, sl.x.linlin(0, 1, -1, 1));
+		paramsbuf.set(71, sl.y.linlin(0, 1, -1, 1));
 	});
 
 	td = Slider2D(win, Rect(500, 140, 80, 80))
@@ -533,8 +520,8 @@ s.waitForBoot{
 	.y_(0.5)   // initial location of y
 	.thumbSize_(10)
 	.action_({ |sl|
-		paramsbuf.set(71, sl.x.linlin(0, 1, -1, 1));
-		paramsbuf.set(72, sl.y.linlin(0, 1, -1, 1));
+		paramsbuf.set(72, sl.x.linlin(0, 1, -1, 1));
+		paramsbuf.set(73, sl.y.linlin(0, 1, -1, 1));
 		//	[\sliderX, sl.x, \sliderY, sl.y].postln;
 	});
 
@@ -542,9 +529,9 @@ s.waitForBoot{
 	.x_(0.5) // initial location of x
 	.y_(0.5)   // initial location of y
 	.thumbSize_(10)
-	.action_({ |sle|
-		paramsbuf.set(73, sle.x.linlin(0, 1, -1, 1));
-		paramsbuf.set(74, sle.y.linlin(0, 1, -1, 1));
+	.action_({ |sl|
+		paramsbuf.set(74, sl.x.linlin(0, 1, -1, 1));
+		paramsbuf.set(75, sl.y.linlin(0, 1, -1, 1));
 		//	[\sliderX, sl.x, \sliderY, sl.y].postln;
 	});
 
@@ -552,9 +539,9 @@ s.waitForBoot{
 	.x_(0.5) // initial location of x
 	.y_(0.5)   // initial location of y
 	.thumbSize_(10)
-	.action_({ |slf|
-		paramsbuf.set(75, slf.x.linlin(0, 1, -1, 1));
-		paramsbuf.set(76, slf.y.linlin(0, 1, -1, 1));
+	.action_({ |sl|
+		paramsbuf.set(76, sl.x.linlin(0, 1, -1, 1));
+		paramsbuf.set(77, sl.y.linlin(0, 1, -1, 1));
 		//	[\sliderX, sl.x, \sliderY, sl.y].postln;
 	});
 
@@ -586,9 +573,14 @@ s.waitForBoot{
 		var aenv, benv, cenv, denv, eenv, fenv;
 		var as, bs, cs, ds, es, fs;
 		var asm, bsm, csm, dsm, esm, fsm;
-	
+
+
+		var act = activity[0];
+		
 		var mod = 2;
 		var mrate = 0.1;
+
+		var amp = 1.0;
 		
 		//comvert the mpbuf to control 
 		mp = FluidBufToKr.kr(mpbuf);
@@ -599,12 +591,20 @@ s.waitForBoot{
 
 		val = FluidBufToKr.kr(paramsbuf);
 
+		//paramsbuf.poll;
+
 		//Define a OSC message to be send with the
 		//values of the paramsbuffer to the address
 		// /paramsChnaged, everytome the values in
 		//paramsbuf change. This is values from the
 		//sound server to the language interpreter
-		SendReply.kr(Mix(Changed.kr(val)), "/paramsChanged", val);
+		SendReply.kr(Mix(Changed.kr(val[0..65])), "/paramsChanged", val[0..65]);
+		SendReply.kr(Mix(Changed.kr(val[66..67])), "/paramsSpaAChanged", val[66..67]);
+		SendReply.kr(Mix(Changed.kr(val[68..69])), "/paramsSpaBChanged", val[68..69]);
+		SendReply.kr(Mix(Changed.kr(val[70..71])), "/paramsSpaCChanged", val[70..71]);
+		SendReply.kr(Mix(Changed.kr(val[72..73])), "/paramsSpaDChanged", val[72..73]);
+		SendReply.kr(Mix(Changed.kr(val[74..75])), "/paramsSpaEChanged", val[74..75]);
+		SendReply.kr(Mix(Changed.kr(val[76..77])), "/paramsSpaFChanged", val[76..77]);
 	
 		/*
 			lata = FluidBufToKr.kr(paramsbuf, 0, 11); // 11: 0-10
@@ -621,7 +621,8 @@ s.waitForBoot{
 		latd = val[35..42]; //FluidBufToKr.kr(parambuf, 35, 8); // 8: 35 - 42
 		late = val[43..46]; //FluidBufToKr.kr(parambuf, 43, 4); // 4: 43 - 46
 		latf = val[47..64]; //FluidBufToKr.kr(parambuf, 47, 18); // 18: 47 - 64
-	
+
+		
 		/*
 			apx = FluidBufToKr.kr(paramsbuf, 65, 1);
 			apy = FluidBufToKr.kr(paramsbuf, 66, 1);
@@ -637,18 +638,23 @@ s.waitForBoot{
 			fpy = FluidBufToKr.kr(paramsbuf, 76, 1);
 		*/
 	
-		apx = val[65]; //FluidBufToKr.kr(parambuf, 65, 1);
-		apy = val[66]; //FluidBufToKr.kr(parambuf, 66, 1);
-		bpx = val[67]; //FluidBufToKr.kr(parambuf, 67, 1);
-		bpy = val[68]; //FluidBufToKr.kr(parambuf, 68, 1);
-		cpx = val[69]; //FluidBufToKr.kr(parambuf, 69, 1);
-		cpy = val[70]; //FluidBufToKr.kr(parambuf, 70, 1);
-		dpx = val[71]; //FluidBufToKr.kr(parambuf, 71, 1);
-		dpy = val[72]; //FluidBufToKr.kr(parambuf, 72, 1);
-		epx = val[73]; //FluidBufToKr.kr(parambuf, 73, 1);
-		epy = val[74]; //FluidBufToKr.kr(parambuf, 74, 1);
-		fpx = val[75]; //FluidBufToKr.kr(parambuf, 75, 1);
-		fpy = val[76]; //FluidBufToKr.kr(parambuf, 76, 1);
+		apx = val[66]; //FluidBufToKr.kr(parambuf, 65, 1);
+		apy = val[67]; //FluidBufToKr.kr(parambuf, 66, 1);
+
+		bpx = val[68]; //FluidBufToKr.kr(parambuf, 67, 1);
+		bpy = val[69]; //FluidBufToKr.kr(parambuf, 68, 1);
+
+		cpx = val[70]; //FluidBufToKr.kr(parambuf, 69, 1);
+		cpy = val[71]; //FluidBufToKr.kr(parambuf, 70, 1);
+
+		dpx = val[72]; //FluidBufToKr.kr(parambuf, 71, 1);
+		dpy = val[73]; //FluidBufToKr.kr(parambuf, 72, 1);
+
+		epx = val[74]; //FluidBufToKr.kr(parambuf, 73, 1);
+		epy = val[75]; //FluidBufToKr.kr(parambuf, 74, 1);
+
+		fpx = val[76]; //FluidBufToKr.kr(parambuf, 75, 1);
+		fpy = val[77]; //FluidBufToKr.kr(parambuf, 76, 1);
 	
 		
 		laa = K2A.ar(Lag.kr(lata, 0.2));
@@ -671,13 +677,39 @@ s.waitForBoot{
 		gdd = Changed.kr(gd, 0.01);
 		gee = Changed.kr(ge, 0.01);
 		gff = Changed.kr(gf, 0.01);
-	
-		aenv = EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gaa, doneAction: 0);	
-		benv = EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gbb, doneAction: 0);	
-		cenv = EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gcc, doneAction: 0);	
-		denv = EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gdd, doneAction: 0);	
-		eenv = EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gee, doneAction: 0);	
-		fenv = EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gff, doneAction: 0);
+
+
+		//non continuos only when predicting
+		
+		aenv = Select.kr(
+			predicting,
+			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gaa, doneAction: 0)]
+		);
+		
+		benv = Select.kr(
+			predicting,
+			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gbb, doneAction: 0)]
+		);
+		
+		cenv = Select.kr(
+			predicting,
+			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gcc, doneAction: 0)]
+		);
+		
+		denv = Select.kr(
+			predicting,
+			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gdd, doneAction: 0)]
+		);
+		
+		eenv = Select.kr(
+			predicting,
+			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gee, doneAction: 0)]
+		);
+		
+		fenv = Select.kr(
+			predicting,
+			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gff, doneAction: 0)]
+		);
 
 		/*
 			var mla = lata.collect{|l|
@@ -685,6 +717,8 @@ s.waitForBoot{
 			var mlb = latb.collect{|l|
 			LFNoise2.ar(mrate).range(-1 * mod, mod) + l}; 
 		*/
+
+		//laa.poll;
 	
 		as = NN(\moda, \decode).ar(laa, 8192);
 		bs = NN(\modb, \decode).ar(lab, 8192);
@@ -718,7 +752,14 @@ s.waitForBoot{
 			) * 2;
 		};
 
-		outsig;
+		//act.poll;
+
+		//amp = Select.kr(predicting, [1, activity[0]]);
+
+		//amp.poll;
+		
+		//outsig = outsig * amp;
+		outsig
 }.play;
 
 
@@ -792,11 +833,71 @@ sig = [osc1,osc2] * 0.1;
 OSCdef(\paramsChanged,{
 	arg msg;
 	defer{
-		mss.value_(msg[3..]);
+		msg.postln;
+		mss.value_(msg[3..]);  // up to 65 nd then the rest to control each xy slider
 	};
 },"/paramsChanged");
 
+	//};
+
+OSCdef(\paramsSpaAChanged,{
+	arg msg;
+	defer{
+		//msg.postln;
+		ta.x_(msg[3]);
+		ta.y_(msg[4]);
+	};
+},"/paramsSpaAChanged");
+
+OSCdef(\paramsSpaBChanged,{
+	arg msg;
+	defer{
+		//msg.postln;
+		tb.x_(msg[3]);
+		tb.y_(msg[4]);
+	};
+},"/paramsSpaBChanged");
+
+	OSCdef(\paramsSpaCChanged,{
+	arg msg;
+	defer{
+		//msg.postln;
+		tc.x_(msg[3]);
+		tc.y_(msg[4]);
+	};
+},"/paramsSpaCChanged");
+
+	OSCdef(\paramsSpaDChanged,{
+	arg msg;
+	defer{
+		//msg.postln;
+		td.x_(msg[3]);
+		td.y_(msg[4]);
+	};
+},"/paramsSpaDChanged");
+
+	OSCdef(\paramsSpaEChanged,{
+	arg msg;
+	defer{
+		//msg.postln;
+		te.x_(msg[3]);
+		te.y_(msg[4]);
+	};
+},"/paramsSpaEChanged");
+
+	OSCdef(\paramsSpaFChanged,{
+	arg msg;
+	defer{
+		//msg.postln;
+		tf.x_(msg[3]);
+		tf.y_(msg[4]);
+	};
+},"/paramsSpaFChanged");
+
+
+
 };
+
 )
 
 s.meter;
