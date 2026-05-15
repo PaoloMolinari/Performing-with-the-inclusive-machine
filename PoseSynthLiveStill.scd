@@ -17,7 +17,7 @@ s.waitForBoot{
 	// to select multislider with the keyboard
 	var selectedIndex = 0; // currently selected slider
 	var label;
-
+	
 	// Tha training will be done live or usin JSON
 	var livetraining = false;
 
@@ -53,7 +53,7 @@ s.waitForBoot{
 	// mpbuf, Buffer from MediaPipe
 	// parambuf, Buffer to synth and control 
 	var mpbuf = Buffer.alloc(s, numValues);
-	var paramsbuf = Buffer.alloc(s, 83);
+	var paramsbuf = Buffer.alloc(s, 78);
 
 	var synthpbuf = Buffer.alloc(s, 66);
 	var spaAPBus = Buffer.alloc(s, 2);
@@ -76,6 +76,9 @@ s.waitForBoot{
 
 	// Boolean draw points or not
 	var visibility = true;
+
+
+
 
 	// Function to draw a circle
 	var circle = {
@@ -102,38 +105,6 @@ s.waitForBoot{
 
 	// OSC Message from MediaPipe Live
 
-	NN.load(
-		\moda,
-		"/home/pemb/Music/Supercollider/nnRave/models/voice-multi-b2048-r48000-z11.ts",
-		action: _.describe ); //11
-	
-	NN.load(
-		\modb,
-		"/home/pemb/Music/Supercollider/nnRave/models/guitar_iil_b2048_r48000_z16.ts",
-		action: _.describe ); //16
-	
-	NN.load(
-		\modc,
-		"/home/pemb/Music/Supercollider/nnRave/models/mrp_strengjavera_b2048_r44100_z16.ts",
-		action: _.describe); //8
-	
-	NN.load(
-		\modd,
-		"/home/pemb/Music/Supercollider/nnRave/models/birds_dawnchorus_b2048_r48000_z8.ts",
-		action: _.describe); //8
-	
-	NN.load(
-		\mode,
-		"/home/pemb/Music/Supercollider/nnRave/models/percussion.ts",
-		action: _.describe); // 4
-	
-	NN.load(
-		\modf,
-		"/home/pemb/Music/Supercollider/nnRave/models/crozzoli_bigensemblesmusic_18d.ts",
-		action: _.describe); //18
-
-	s.sync;
-
 	OSCdef(\oscposes, {
 		arg msg, mmsg;
 
@@ -158,6 +129,7 @@ s.waitForBoot{
 			sdeltas[i]  = (smoothing * sdeltas[i]) + ((1 - smoothing) * deltas[i]);
 
             adatasmooth[i] = (0.99 * padata[i]) + ((1 - 0.99) * adata[i]);
+			
 			
 			// copy actual value to pdata
 			padata[i] = val;
@@ -245,18 +217,22 @@ s.waitForBoot{
 	.showIndex_(true)
 	.action_({
 		arg ms;
-		paramsbuf.setn(12, ms.value);
+		paramsbuf.setn(6, ms.value);
 			infosynth.string_("Slider: %  Value: %".format(
 			ms.index,
 			ms.value[ms.index].round(0.01)
 			));	
-	}).value_(0.0.dup(71));
-	//	.defaultKeyDownAction(char, mod, uni, keycode, key); //71
+	}).value_(0.0.dup(21)); //65
 
 
-	// change multislider with keyboards
+	
+	//label = StaticText(win, Rect(10, 390, 380, 20));
+	//label.string = "Slider: % | Value: %".format(
+	//	selectedIndex, mss.value[selectedIndex].round(0.01));
 
-		//change multislider with arrow keys
+
+
+	//change multislider with arrow keys
 	
 	win.view.keyDownAction = { |view, char, mod, unicode, keycode|
 		switch(keycode,
@@ -266,7 +242,7 @@ s.waitForBoot{
 				var vals =  mss.value.copy;
 				vals[selectedIndex] = (vals[selectedIndex] + 0.01).min(1.0);
 				mss.value_(vals);
-				paramsbuf.setn(12, vals);
+				paramsbuf.setn(6, vals);
 				mss.refresh;
 				infosynth.string_("Slider: %  Value: %".format(
 					selectedIndex,
@@ -277,7 +253,7 @@ s.waitForBoot{
             var vals =  mss.value.copy;
 				vals[selectedIndex] = (vals[selectedIndex] - 0.01).max(0.0);
 				mss.value_(vals);
-				paramsbuf.setn(12, vals);
+				paramsbuf.setn(6, vals);
 				mss.refresh;
 				infosynth.string_("Slider: %  Value: %".format(
 					selectedIndex,
@@ -288,8 +264,8 @@ s.waitForBoot{
 		);
 
 		mss.index = selectedIndex;
-		//	label.string = "Slider: % | Value: %".format(
-		//	selectedIndex, mss.value[selectedIndex].round(0.01));
+		label.string = "Slider: % | Value: %".format(
+			selectedIndex, mss.value[selectedIndex].round(0.01));
 		mss.refresh;
 };
 
@@ -526,7 +502,7 @@ s.waitForBoot{
 		if (msg.value == 1) {
 			~pid = "bash -c 'conda run -n mediapipe python /home/pemb/Documents/Proyectos/Mime_interactive/Musical_Instrument/mpPoseLive.py'".unixCmd;	
         } {
-			"pkill -f mpPoseLive.py".unixCmd;  // kill it on toggle off
+            "pkill -f mpPoseLive.py".unixCmd;  // kill it on toggle off
         };
 	};
 
@@ -561,13 +537,14 @@ s.waitForBoot{
 		paramsbuf.set(5, sl.y.linlin(0, 1, -1, 1));
 	});
 
+	/*
 	td = Slider2D(win, Rect(500, 140, 80, 80))
 	.x_(0.5) // initial location of x
 	.y_(0.5)   // initial location of y
 	.thumbSize_(10)
 	.action_({ |sl|
-		paramsbuf.set(6, sl.x.linlin(0, 1, -1, 1));
-		paramsbuf.set(7, sl.y.linlin(0, 1, -1, 1));
+		paramsbuf.set(72, sl.x.linlin(0, 1, -1, 1));
+		paramsbuf.set(73, sl.y.linlin(0, 1, -1, 1));
 		//	[\sliderX, sl.x, \sliderY, sl.y].postln;
 	});
 
@@ -576,8 +553,8 @@ s.waitForBoot{
 	.y_(0.5)   // initial location of y
 	.thumbSize_(10)
 	.action_({ |sl|
-		paramsbuf.set(8, sl.x.linlin(0, 1, -1, 1));
-		paramsbuf.set(9, sl.y.linlin(0, 1, -1, 1));
+		paramsbuf.set(74, sl.x.linlin(0, 1, -1, 1));
+		paramsbuf.set(75, sl.y.linlin(0, 1, -1, 1));
 		//	[\sliderX, sl.x, \sliderY, sl.y].postln;
 	});
 
@@ -586,322 +563,205 @@ s.waitForBoot{
 	.y_(0.5)   // initial location of y
 	.thumbSize_(10)
 	.action_({ |sl|
-		paramsbuf.set(10, sl.x.linlin(0, 1, -1, 1));
-		paramsbuf.set(11, sl.y.linlin(0, 1, -1, 1));
+		paramsbuf.set(76, sl.x.linlin(0, 1, -1, 1));
+		paramsbuf.set(77, sl.y.linlin(0, 1, -1, 1));
 		//	[\sliderX, sl.x, \sliderY, sl.y].postln;
 	});
-
-	~synthbus = Bus.audio(s, 2);
+	*/
+	//	~synthbus = Bus.audio(s, 2);
 
 	synth =  {
 		arg predicting = 0;
-		var sig, outsig, mp, trig, val;
-		var lata, latb, latc, latd, late, latf;
-		/*
-			var apx = 0.5;
-			var apy = 0.5;
-			var bpx = 0.5;
-			var bpy = 0.5;
-			var cpx = 0.5;
-			var cpy = 0.5;
-			var dpx = 0.5;
-			var dpy = 0.5;
-			var epx = 0.5;
-			var epy = 0.5;
-			var fpx = 0.5;
-			var fpy = 0.5;
-		*/
 
-		var apx, apy, bpx, bpy, cpx, cpy, dpx, dpy, epx, epy, fpx, fpy;
-		var laa, lab, lac, lad, lae, laf;
-		var ga, gb, gc, gd, ge, gf;
-		var gaa, gbb, gcc, gdd, gee, gff;
-		var aenv, benv, cenv, denv, eenv, fenv;
-		var as, bs, cs, ds, es, fs;
-		var asm, bsm, csm, dsm, esm, fsm;
+		//main output
+		var main_sig = 0;
 		
-		var act = activity[0];		
-		var mod = 2;
-		var mrate = 0.1;
-		var amp = 1.0;
-		var aamp = 0.0;
-		var bamp = 0.0;
-		var camp = 0.0;
-		var damp = 0.0;
-		var eamp = 0.0;
-		var famp = 0.0;
+		//vars envelopes
+		var atk = 0.01;
+		var sus = 1.0;
+		var rel = 3;
+
+		// Instrs. Specific variables //
+
+		// Instr. A (simple AM) //
+		var a_carrier, a_modulator, a_env, a_data;
+		var a_gate = 0;
+		var a_freq = 440;
+		var a_modfreq = 2;
+		var a_amp = 0.2;
+		var a_px = 0.5;
+		var a_py = 0.5;
+		var a_osig = 0;
+
+		// Instr. B (complex AM) //
+
+		var b_carrier, b_modulator, b_env, b_data;
+		var b_gate = 0;
+		var b_freq = 440;
+		var b_modfreq = 2;
+		var b_amp = 0.2;
+		var b_px = 0.5;
+		var b_py = 0.5;
+		var b_osig = 0;
+
+		// Instr. C (drone FM)
+
+		var c_sig, c_car1, c_mod1, c_car2, c_mod2, c_car3, c_mod3, c_env, c_index, c_data;
+		var c_f1Freq = 0.1;
+		var c_f2Freq = 1.1;
+		var c_f3Freq = 2.2;
+		var degree = 1;
+		var c_nFreq = 440;
+		var c_m1Ratio = 1;
+		var c_m2Ratio = 2;
+		var c_m3Ratio = 3;
+		var c_amp = 0.1;
+		var c_ampM = 0.84;
+		var c_gate = 0;
+		var c_px = 0.5;
+		var c_py = 0.5;
+		var c_osig = 0;
+
+		var val, mp, trig;
 		
-		//comvert the mpbuf to control 
+		// neural network
+
 		mp = FluidBufToKr.kr(mpbuf);
 		trig = Mix(Changed.kr(mp));
-
-		//only when is triggered.
 		mlp.kr(trig * predicting, mpbuf, paramsbuf);
-
 		val = FluidBufToKr.kr(paramsbuf);
 
-		//paramsbuf.poll;
-
-		//Define a OSC message to be send with the
-		//values of the paramsbuffer to the address
-		// /paramsChnaged, everytome the values in
-		//paramsbuf change. This is values from the
-		//sound server to the language interpreter
-
-		//		(predicting * Mix(Changed.kr(val[0..70]))).poll;
 		
-		SendReply.kr(predicting * Mix(Changed.kr(val[0..70])), "/paramsChanged", val[12..82]); //71
-		SendReply.kr(predicting * Mix(Changed.kr(val[0..1])), "/paramsSpaAChanged", val[0..1]);
-		SendReply.kr(predicting * Mix(Changed.kr(val[2..3])), "/paramsSpaBChanged", val[2..3]);
-		SendReply.kr(predicting * Mix(Changed.kr(val[4..5])), "/paramsSpaCChanged", val[4..5]);
-		SendReply.kr(predicting * Mix(Changed.kr(val[6..7])), "/paramsSpaDChanged", val[6..7]);
-		SendReply.kr(predicting * Mix(Changed.kr(val[8..9])), "/paramsSpaEChanged", val[8..9]);
-		SendReply.kr(predicting * Mix(Changed.kr(val[10..11])), "/paramsSpaFChanged", val[10..11]);
+		SendReply.kr(
+			predicting * Mix(Changed.kr(val[0..14])),
+			"/paramsChanged",
+			val[6..19]);
+		
+		SendReply.kr(
+			predicting * Mix(Changed.kr(val[15..16])),
+			"/paramsSpaAChanged",
+			val[0..1]);
+		
+		SendReply.kr(
+			predicting * Mix(Changed.kr(val[17..18])),
+			"/paramsSpaBChanged",
+			val[2..3]);
+
+		SendReply.kr(
+			predicting * Mix(Changed.kr(val[19..20])),
+			"/paramsSpaCChanged",
+			val[4..5]);
+
+		a_data = val[6..8];
+		a_gate = Changed.kr(Mix.kr(a_data), 0.01);
+		a_freq = a_data[0].linexp(0.01, 1.0, 20.0, 1000.0);
+		a_modfreq = a_data[1].linexp(0.01, 1.0, 20.0, 1000.0);
+		a_amp = a_data[2];
+
+		//a_data[2].poll;
+		
+		
+		b_data = val[9..11];
+		b_gate = Changed.kr(Mix.kr(b_data), 0.01);
+		b_freq = b_data[0].linexp(0.01, 1.0, 20.0, 1000.0);
+		b_modfreq = b_data[1].linexp(0.01, 1.0, 20.0, 1000.0);
+		b_amp = b_data[2];
+
+		c_data = val[12..20];
+		c_gate = Changed.kr(Mix.kr(c_data), 0.01);
+		c_f1Freq = c_data[0].linlin(0, 1, 0.0, 5).round(0.1);
+		c_f2Freq = c_data[1].linlin(0, 1, 0.0, 5).round(0.1);
+		c_f3Freq = c_data[2].linlin(0, 1, 0.0, 5).round(0.1);
+		//degree = c_data[3].linlin(0, 1, 0, 7).round(1);
+		//c_nFreq = degree.degreeToKey(Scale.major.degrees, 12).midicps;
+		c_nFreq = c_data[3].linlin(0, 1, 0.0, 1000).round(0.1);
+		c_m1Ratio = c_data[4].linlin(0, 1, 0.0, 5).round(0.1);
+		c_m2Ratio = c_data[5].linlin(0, 1, 0.0, 5).round(0.1);
+		c_m3Ratio = c_data[6].linlin(0, 1, 0.0, 5).round(0.1);
+		c_amp = c_data[7].linlin(0, 1, 0.0, 1);
+		c_ampM = c_data[8].linlin(0, 1, 0.0, 0.84);
+
+		a_px = val[0];
+		a_py = val[1];
+		b_px = val[2];
+		b_py = val[3];
+		c_px = val[4];
+		c_py = val[5];
+
+		//c_px.poll;
+		
+		// Inst. A //
+		a_env = Select.kr(predicting, [1, EnvGen.kr(
+			Env.asr(
+				attackTime: atk,
+				releaseTime: rel),
+			gate: a_gate,
+			doneAction: 0)]);
+
+		a_modulator = SinOsc.ar(a_modfreq).range(0, 1);
+		a_carrier = SinOsc.ar(freq: a_freq, mul: a_env * a_modulator);
+		a_carrier = a_carrier * a_amp;
+		a_osig = Pan4.ar(a_carrier, a_px, a_py, 1);
+		
+		//Instr. B
+		
+		b_env = Select.kr(predicting, [1, EnvGen.kr(
+			Env.asr(attackTime: atk, releaseTime: rel),
+			gate: b_gate,
+			doneAction: 0)]);
 	
-		/*
-			lata = FluidBufToKr.kr(paramsbuf, 0, 11); // 11: 0-10
-			latb = FluidBufToKr.kr(paramsbuf, 11, 16); // 16: 11- 26
-			latc = FluidBufToKr.kr(paramsbuf, 27, 8); // 8: 27 - 34  
-			latd = FluidBufToKr.kr(paramsbuf, 35, 8); // 8: 35 - 42
-			late = FluidBufToKr.kr(paramsbuf, 43, 4); // 4: 43 - 46
-			latf = FluidBufToKr.kr(paramsbuf, 47, 18); // 18: 47 - 64
-		*/
+		b_modulator = SinOsc.ar(b_modfreq).range(0, 1);
+		b_freq = b_freq * LFNoise2.kr([2, 1/2, 1/3, 1/4, 1]).range(0.98, 1.01);
+		b_carrier = Pulse.ar(freq: b_freq, mul: b_env * b_modulator);
+		b_carrier = Mix.ar(b_carrier);
+		b_carrier = LPF.ar(b_carrier, Line.kr(10000, 1000, atk));
+		b_carrier = b_carrier * b_amp;
+		b_osig = Pan4.ar(b_carrier, b_px, b_py, 1);
 
+		//Instr.C
 
-		aamp = val[12];
-		bamp = val[13];
-		camp = val[14];
-		damp = val[15];
-		eamp = val[16];
-		famp = val[17];
+		c_index = LFNoise1.kr(0.1).range(2, 20);
+		//index = amp.linlin(0.01, 0.1, 2.0, 6.0);
 		
-		lata = val[18..28]; //FluidBufToKr.kr(parambuf, 0, 11); // 11: 0-10
-		latb = val[29..44]; //FluidBufToKr.kr(parambuf, 11, 16); // 16: 11- 26
-		latc = val[45..52]; //FluidBufToKr.kr(parambuf, 27, 8); // 8: 27 - 34  
-		latd = val[53..60]; //FluidBufToKr.kr(parambuf, 35, 8); // 8: 35 - 42
-		late = val[61..64]; //FluidBufToKr.kr(parambuf, 43, 4); // 4: 43 - 46
-		latf = val[65..82]; //FluidBufToKr.kr(parambuf, 47, 18); // 18: 47 - 64
-
-
-		/*
-			apx = FluidBufToKr.kr(paramsbuf, 65, 1);
-			apy = FluidBufToKr.kr(paramsbuf, 66, 1);
-			bpx = FluidBufToKr.kr(paramsbuf, 67, 1);
-			bpy = FluidBufToKr.kr(paramsbuf, 68, 1);
-			cpx = FluidBufToKr.kr(paramsbuf, 69, 1);
-			cpy = FluidBufToKr.kr(paramsbuf, 70, 1);
-			dpx = FluidBufToKr.kr(paramsbuf, 71, 1);
-			dpy = FluidBufToKr.kr(paramsbuf, 72, 1);
-			epx = FluidBufToKr.kr(paramsbuf, 73, 1);
-			epy = FluidBufToKr.kr(paramsbuf, 74, 1);
-			fpx = FluidBufToKr.kr(paramsbuf, 75, 1);
-			fpy = FluidBufToKr.kr(paramsbuf, 76, 1);
-		*/
-	
-		apx = val[0]; //FluidBufToKr.kr(parambuf, 65, 1);
-		apy = val[1]; //FluidBufToKr.kr(parambuf, 66, 1);
-
-		bpx = val[2]; //FluidBufToKr.kr(parambuf, 67, 1);
-		bpy = val[3]; //FluidBufToKr.kr(parambuf, 68, 1);
-
-		cpx = val[4]; //FluidBufToKr.kr(parambuf, 69, 1);
-		cpy = val[5]; //FluidBufToKr.kr(parambuf, 70, 1);
-
-		dpx = val[6]; //FluidBufToKr.kr(parambuf, 71, 1);
-		dpy = val[7]; //FluidBufToKr.kr(parambuf, 72, 1);
-
-		epx = val[8]; //FluidBufToKr.kr(parambuf, 73, 1);
-		epy = val[9]; //FluidBufToKr.kr(parambuf, 74, 1);
-
-		fpx = val[10]; //FluidBufToKr.kr(parambuf, 75, 1);
-		fpy = val[11]; //FluidBufToKr.kr(parambuf, 76, 1);
-	
-		/*
-		laa = K2A.ar(Lag.kr(lata, 0.2));
-		lab = K2A.ar(Lag.kr(latb, 0.2));
-		lac = K2A.ar(Lag.kr(latc, 0.2));
-		lad = K2A.ar(Lag.kr(latd, 0.2));
-		lae = K2A.ar(Lag.kr(late, 0.2));
-		laf = K2A.ar(Lag.kr(latf, 0.2));
-		*/
-
-		laa = K2A.ar(lata);
-		lab = K2A.ar(latb);
-		lac = K2A.ar(latc);
-		lad = K2A.ar(latd);
-		lae = K2A.ar(late);
-		laf = K2A.ar(latf);
-
-		//		lae.poll;
-
+		c_env = Select.kr(predicting, [1, EnvGen.kr(
+			Env.asr(attackTime: atk, releaseTime: rel),
+			gate: c_gate,
+			doneAction: 0)]);
+			
+		c_index = c_index * c_env;
 		
-		//		laa.poll;
+		c_mod1 = SinOsc.ar(
+			[c_nFreq * c_m1Ratio, c_nFreq + 0.7 * c_m1Ratio],
+			mul: c_nFreq * c_m1Ratio * c_index);
+		c_mod1 = c_mod1 * c_ampM;
+		c_car1 = SinOsc.ar(c_f1Freq + c_mod1);
+
+		c_mod2 = SinOsc.ar(
+			[c_nFreq * c_m2Ratio, c_nFreq + 1.4 * c_m2Ratio],
+			mul: c_nFreq * c_m2Ratio * c_index);
+		c_mod2 = c_mod2 * c_ampM;
+		c_car2 = SinOsc.ar(c_f2Freq + c_mod2);
+
+		c_mod3 = SinOsc.ar(
+			[c_nFreq * c_m3Ratio, c_nFreq + 0.35 * c_m3Ratio],
+			mul: c_nFreq * c_m3Ratio * c_index);
+		c_mod3 = c_mod3 * c_ampM;
+		c_car3 = SinOsc.ar(c_f3Freq + c_mod3) * 0.4;
 		
-		ga = Changed.kr(Mix.kr(lata), 0.01);
-		gb = Changed.kr(Mix.kr(latb), 0.01);
-		gc = Changed.kr(Mix.kr(latc), 0.01);
-		gd = Changed.kr(Mix.kr(latd), 0.01);
-		ge = Changed.kr(Mix.kr(late), 0.01);
-		gf = Changed.kr(Mix.kr(latf), 0.01);
-	
-		gaa = Changed.kr(ga, 0.01);
-		gbb = Changed.kr(gb, 0.01);
-		gcc = Changed.kr(gc, 0.01);
-		gdd = Changed.kr(gd, 0.01);
-		gee = Changed.kr(ge, 0.01);
-		gff = Changed.kr(gf, 0.01);
-
-
-		//non continuos only when predicting
+		c_sig = Mix.ar((c_car1 + c_car2 + c_car3)) * c_env * c_amp;
 		
-		aenv = Select.kr(
-			predicting,
-			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gaa, doneAction: 0)]
-		);
-		
-		benv = Select.kr(
-			predicting,
-			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gbb, doneAction: 0)]
-		);
-		
-		cenv = Select.kr(
-			predicting,
-			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gcc, doneAction: 0)]
-		);
-		
-		denv = Select.kr(
-			predicting,
-			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gdd, doneAction: 0)]
-		);
-		
-		eenv = Select.kr(
-			predicting,
-			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gee, doneAction: 0)]
-		);
-		
-		fenv = Select.kr(
-			predicting,
-			[1, EnvGen.kr(Env.asr(0.5, 1.0, 1.0), gff, doneAction: 0)]
-		);
+		c_osig = Pan4.ar(c_sig, c_px, c_py, 1);
 
-		/*
-			var mla = lata.collect{|l|
-			LFNoise2.ar(mrate).range(-1 * mod, mod) + l}; 
-			var mlb = latb.collect{|l|
-			LFNoise2.ar(mrate).range(-1 * mod, mod) + l}; 
-		*/
+		b_osig.poll;
 
-		//laa.poll;
-
-		
-		as = NN(\moda, \decode).ar(laa, 8192);
-		bs = NN(\modb, \decode).ar(lab, 8192);
-		cs = NN(\modc, \decode).ar(lac, 8192);
-		ds = NN(\modd, \decode).ar(lad, 8192);
-		es = NN(\mode, \decode).ar(lae, 8192);
-		fs = NN(\modf, \decode).ar(laf, 8192);
-
-		as = as * aenv * aamp;
-		bs = bs * benv * bamp;
-		cs = cs * cenv * camp;
-		ds = ds * denv * damp;
-		es = es * eenv * eamp;
-		fs = fs * fenv * famp;
-
-		asm = Pan4.ar(Mix.ar(as), apx, apy, 1);
-		bsm = Pan4.ar(Mix.ar(bs), bpx, bpy, 1);
-		csm = Pan4.ar(Mix.ar(cs), cpx, cpy, 1);
-		dsm = Pan4.ar(Mix.ar(ds), dpx, dpy, 1);
-		esm = Pan4.ar(Mix.ar(es), epx, epy, 1);
-		fsm = Pan4.ar(Mix.ar(fs), fpx, fpy, 1);
-
-		sig = asm + bsm + csm + dsm + esm + fsm;
-
-		outsig  = sig.collect { |ch|
-			FreeVerb.ar(
-				ch,
-				LFNoise2.kr(1).range(0, 1),
-				LFNoise2.kr(1).range(0, 1),
-				LFNoise2.kr(1).range(0, 1)
-			) * 2;
-		};
-
-		//act.poll;
-
-		//amp = Select.kr(predicting, [1, activity[0]]);
-
-		//amp.poll;
-		
-		//outsig = outsig * amp;
-		outsig
-}.play;
+		main_sig = a_osig + b_osig + c_osig;
+		main_sig
+	}.play;
 
 
 
-
-/*
-//SYNTH
-synth = {
-	arg predicting = 0;
-	var in, latent, modLatent, prior, rlmod = 20;
-	var osc1, osc2, feed1, feed2, base1=69, base2=69, base3 = 130, loud1, loud2, sig;
-	var val, mp, trig;
-
-	//comvert the mpbuf to control 
-	mp = FluidBufToKr.kr(mpbuf);
-	//trigger if the control changes
-	trig = Mix(Changed.kr(mp));
-	//The trigger is activated when the argument
-	//predicting is 1. Otherwise the trigger will
-	//be always 0, therefore not triggering.
-	//The mlp claculates the outpus of the nn
-	//only when is triggered.
-	mlp.kr(trig * predicting, mpbuf, paramsbuf);
-	val = FluidBufToKr.kr(paramsbuf);
-	//Define a OSC message to be send with the
-	//values of the paramsbuffer to the address
-	// /paramsChnaged, everytome the values in
-	//paramsbuf change. This is values from the
-	//sound server to the language interpreter
-	SendReply.kr(Mix(Changed.kr(val)), "/paramsChanged", val);
-	
-	
-	#feed2, feed1 = LocalIn.ar(2);
-
-	//only for testing is we get the data from MP. 
-	//	FluidBufToKr.kr(~mpbuf).poll;
-
-	loud1 = FluidLoudness.kr(feed1,[\loudness],1,0,hopSize:64);
-	loud2 = FluidLoudness.kr(feed2,[\loudness],1,0,hopSize:64);
-
-	osc1 = SinOsc.ar((((feed1 * val[0]) +  val[1]) * base1).midicps,mul:(val[2] * 50).dbamp).atan;
-	osc1 = MoogFF.ar(osc1,(base3-(val[3]*(loud2.clip(-120,0)+120))).lag(128/44100).midicps,val[4]*3.5);
-
-	osc2 = SinOsc.ar((((feed2 * val[5]) +  val[6]) * base2).midicps,mul: (val[7] * 50).dbamp).atan;
-	osc2 = MoogFF.ar(osc2,(base3-(val[8]*(loud1.clip(-120,0)+120))).lag(128/44100).midicps,val[9]*3.5);
-
-	//		Out.ar(~synthbus,LeakDC.ar([osc1,osc2],mul:0.1));
-
-	LocalOut.ar([osc1,osc2]);
-	
-sig = [osc1,osc2] * 0.1;
-
-	/*
-    // encode sound input to RAVE latent space
-    latent = NN(\ravePerc, \encode).ar(sig);
-    // add a random modulation to every dimension
-    modLatent = latent.collect { |l|
-        l + LFNoise1.ar(val[10] * rlmod).range(-0.5, 0.5)
-    };
-    // resynthesize modulated latents
-	//    NN(\ravePerc, \decode).ar(modLatent);
 
 	
-	FreeVerb.ar(NN(\ravePerc, \decode).ar(modLatent), LFNoise2.kr(1).range(0,1), LFNoise2.kr(1).range(0,1), LFNoise2.kr(1).range(0,1));
-	*/
-}.play;
-	*/
-
 //OSCdef to receive the masse from the audio server
 //to the language interpreter
 OSCdef(\paramsChanged,{
@@ -941,6 +801,8 @@ OSCdef(\paramsSpaBChanged,{
 	};
 },"/paramsSpaCChanged");
 
+	/*
+	
 	OSCdef(\paramsSpaDChanged,{
 	arg msg;
 	defer{
@@ -968,7 +830,7 @@ OSCdef(\paramsSpaBChanged,{
 	};
 },"/paramsSpaFChanged");
 
-
+	*/
 
 };
 
